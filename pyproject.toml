@@ -9,40 +9,15 @@ description = "A lightweight Python wrapper for the IG Markets API"
 authors = [
     { name = "Femto Trader", email = "femto.trader@gmail.com" },
     { name = "Andy Geach", email = "andy@bugorfeature.net" },
+    { name = "Mat Tolladay", email = "djlets2004@yahoo.co.uk"},
 ]
-requires-python = ">=3.10,<4"
+requires-python = ">=3.12,<4"
 readme = "README.rst"
 license = "BSD-3-Clause"
-maintainers = [
-    { name = "Andy Geach", email = "andy@bugorfeature.net" }
-]
-keywords = [
-    "trading",
-    "spread betting",
-    "CFDs",
-]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Environment :: Console",
-    "Intended Audience :: Science/Research",
-    "Intended Audience :: Developers",
-    "Operating System :: OS Independent",
-    "Programming Language :: Cython",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-    "Topic :: Scientific/Engineering",
-    "Topic :: Software Development :: Libraries",
-]
 dependencies = [
     "requests>=2.24,<3",
     "pycryptodome>=3.9,<4",
     "requests-cache>=0.5,<0.6",
-    "six>=1.15,<2",
     "lightstreamer-client-lib==1.0.3",
 ]
 
@@ -51,16 +26,10 @@ pandas = ["pandas>=2,<3"]
 munch = ["munch>=2.5,<3"]
 tenacity = ["tenacity>=8,<9"]
 
-[project.urls]
-Homepage = "https://github.com/ig-python/trading-ig"
-Repository = "https://github.com/ig-python/trading-ig"
-Documentation = "https://trading-ig.readthedocs.io/"
-Issues = "https://github.com/ig-python/trading-ig/issues"
-
 [dependency-groups]
 dev = [
     "ruff",
-    "pytest>=8,<9",
+    "pytest",
     "responses>=0.25,<0.26",
     "coveralls>=3,<4",
     "sphinx",

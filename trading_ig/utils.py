@@ -13,7 +13,6 @@ OPT_URL = "https://trading-ig.readthedocs.io/en/latest/faq.html#optional-depende
 
 try:
     import pandas as pd
-    import numpy as np  # noqa
 except ImportError:
     _HAS_PANDAS = False
     logger.warning(f"pandas is not present in the environment. See {OPT_URL}")
@@ -123,7 +122,7 @@ def print_full(x):
     pd.reset_option("display.max_colwidth")
 
 
-def api_limit_hit(response_text):
+def api_limit_hit(response_text: str):
     # note we don't check for historical data allowance - it only gets reset
     # once a week
     return (
@@ -133,7 +132,7 @@ def api_limit_hit(response_text):
     )
 
 
-def token_invalid(response_text):
+def token_invalid(response_text: str):
     return (
         "oauth-token-invalid" in response_text
         or "client-token-invalid" in response_text

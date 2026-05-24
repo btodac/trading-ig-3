@@ -46,7 +46,7 @@ with ``trading_ig_config.py``
 
 .. code:: python
 
-    class config(object):
+    class config:
         username = "YOUR_USERNAME"
         password = "YOUR_PASSWORD"
         api_key = "YOUR_API_KEY"

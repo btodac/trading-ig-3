@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-
 """
 IG Markets REST API Library for Python
 https://labs.ig.com/rest-trading-api-reference
@@ -12,13 +9,17 @@ import json
 import logging
 import time
 from base64 import b64encode, b64decode
+from datetime import timedelta, datetime
+from enum import IntEnum, StrEnum
+from queue import Queue, Empty
+from threading import Thread
+
 
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
-from requests import Session
+from requests import Session, Response
 from urllib.parse import urlparse, parse_qs
 
-from datetime import timedelta, datetime
 from .utils import _HAS_PANDAS, _HAS_MUNCH
 from .utils import (
     conv_resol,
@@ -36,8 +37,7 @@ if _HAS_PANDAS:
     from .utils import pd
     from pandas import json_normalize
 
-from threading import Thread
-from queue import Queue, Empty
+
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class ApiExceededException(Exception):
     pass
 
 
-class TokenInvalidException(Exception):
+class TokenInvalidException(ConnectionError):
     """Raised when the session token is invalid or expired"""
 
     pass
@@ -64,25 +64,38 @@ class KycRequiredException(Exception):
     pass
 
 
-class IGSessionCRUD(object):
+class AccountTypes(StrEnum):
+    LIVE = ("live", "https://api.ig.com/gateway/deal")
+    DEMO = ("demo", "https://demo-api.ig.com/gateway/deal")
+
+    def __new__(cls, value: str, url: str):
+        obj = str.__new__(cls, value)
+        obj._value_ = value
+        obj._url_ = url
+        return obj
+    
+    @property
+    def url(self):
+        return self._url_
+
+
+class IGSessionCRUD:
     """Session with CRUD operation"""
 
-    BASE_URL = None
-
-    def __init__(self, base_url, api_key, session):
-        self.BASE_URL = base_url
-        self.API_KEY = api_key
+    def __init__(self, base_url: str, api_key: str, session: Session):
+        self.base_url = base_url
+        self.api_key = api_key
         self.session = session
 
         self.session.headers.update(
             {
-                "X-IG-API-KEY": self.API_KEY,
+                "X-IG-API-KEY": self.api_key,
                 "Content-Type": "application/json",
                 "Accept": "application/json; charset=UTF-8",
             }
         )
 
-    def _get_session(self, session):
+    def _get_session(self, session: Session | None = None, version: IGRestAPIVersion | None = None) -> Session:
         """Returns a Requests session if session is None
         or session if it's not None (cached session
         with requests-cache for example)
@@ -91,22 +104,20 @@ class IGSessionCRUD(object):
         :return:
         """
         if session is None:
-            session = self.session  # requests Session
+            session = self.session 
         else:
             session = session
+        if IGRestAPIVersion is not None:
+            session.headers.update({"VERSION": str(version)})
         return session
 
-    def _url(self, endpoint):
+    def _url(self, endpoint: str) -> str:
         """Returns url from endpoint and base url"""
-        return self.BASE_URL + endpoint
+        return self.base_url + endpoint
 
-    def create(self, endpoint, params, session, version):
+    def create(self, endpoint: str, params, session: Session, version: IGRestAPIVersion) -> Response:
         """Create = POST"""
-        url = self._url(endpoint)
-        session = self._get_session(session)
-        session.headers.update({"VERSION": version})
-        response = session.post(url, data=json.dumps(params))
-        logger.info(f"POST '{endpoint}', resp {response.status_code}")
+        response = self._request(RequestType.GET, endpoint, params, session, version)
         if response.status_code in [401, 403]:
             if api_limit_hit(response.text):
                 raise ApiExceededException()
@@ -120,47 +131,46 @@ class IGSessionCRUD(object):
 
         return response
 
-    def read(self, endpoint, params, session, version):
+    def read(self, endpoint: str, params, session: Session, version: IGRestAPIVersion) -> Response:
         """Read = GET"""
-        url = self._url(endpoint)
-        session = self._get_session(session)
-        session.headers.update({"VERSION": version})
-        response = session.get(url, params=params)
+        response = self._request(RequestType.GET, endpoint, params, session, version)
         # handle 'read_session' with 'fetchSessionTokens=true'
-        handle_session_tokens(response, self.session)
-        logger.info(f"GET '{endpoint}', resp {response.status_code}")
+        handle_session_tokens(response, self._get_session(session))
         return response
 
-    def update(self, endpoint, params, session, version):
+    def update(self, endpoint: str, params, session: Session, version: IGRestAPIVersion) -> Response:
         """Update = PUT"""
-        url = self._url(endpoint)
-        session = self._get_session(session)
-        session.headers.update({"VERSION": version})
-        response = session.put(url, data=json.dumps(params))
-        logger.info(f"PUT '{endpoint}', resp {response.status_code}")
-        return response
+        return self._request(RequestType.PUT, endpoint, params, session, version)
 
     def delete(self, endpoint, params, session, version):
-        """Delete = POST"""
-        url = self._url(endpoint)
-        session = self._get_session(session)
-        session.headers.update({"VERSION": version})
-        session.headers.update({"_method": "DELETE"})
-        response = session.post(url, data=json.dumps(params))
-        logger.info(f"DELETE (POST) '{endpoint}', resp {response.status_code}")
-        if "_method" in session.headers:
-            del session.headers["_method"]
-        return response
+        """Delete = DELETE"""
+        return self._request(RequestType.DELETE, endpoint, params, session, version)
 
-    def req(self, action, endpoint, params, session, version):
-        """Send a request (CREATE READ UPDATE or DELETE)"""
-        d_actions = {
-            "create": self.create,
-            "read": self.read,
-            "update": self.update,
-            "delete": self.delete,
-        }
-        return d_actions[action](endpoint, params, session, version)
+    def _request(self, request_type: RequestType, endpoint, params, session, version):
+        url = self._url(endpoint)
+        session = self._get_session(session, version)
+        data = json.dumps(params)
+        request = getattr(session, request_type)
+        response: Response = request(url, data=data)
+        logger.info(f"{request_type.upper()} '{endpoint}', resp {response.status_code}")
+        return response
+    
+    def handle_session_tokens(self, response: Response, session: Session | None = None):
+        """
+        Copy session tokens from response to headers, so they will be present for all
+            future requests
+        :param response: HTTP response object
+        :type response: requests.Response
+        :param session: HTTP session object
+        :type session: requests.Session
+        """
+        session = self._get_session(session)
+        if "CST" in response.headers:
+            session.headers.update({"CST": response.headers["CST"]})
+        if "X-SECURITY-TOKEN" in response.headers:
+            session.headers.update(
+                {"X-SECURITY-TOKEN": response.headers["X-SECURITY-TOKEN"]}
+            )
 
 
 class IGService:
@@ -169,27 +179,22 @@ class IGService:
         "demo": "https://demo-api.ig.com/gateway/deal",
     }
 
-    API_KEY = None
-    IG_USERNAME = None
-    IG_PASSWORD = None
     _refresh_token = None
     _valid_until = None
 
     def __init__(
         self,
-        username,
-        password,
-        api_key,
-        acc_type="demo",
-        acc_number=None,
-        session=None,
+        username: str,
+        password: str,
+        api_key: str,
+        acc_type: AccountTypes = AccountTypes.DEMO,
+        acc_number: str | None = None,
+        session: Session | None = None,
         return_dataframe=_HAS_PANDAS,
         return_munch=_HAS_MUNCH,
         retryer=None,
-        use_rate_limiter=False,
+        use_rate_limiter: bool=False,
     ):
-        """Constructor, calls the method required to connect to
-        the API (accepts acc_type = LIVE or DEMO)"""
         self.API_KEY = api_key
         self.IG_USERNAME = username
         self.IG_PASSWORD = password
@@ -197,13 +202,7 @@ class IGService:
         self._retryer = retryer
         self._use_rate_limiter = use_rate_limiter
         self._bucket_threads_run = False
-        try:
-            self.BASE_URL = self.D_BASE_URL[acc_type.lower()]
-        except Exception:
-            raise IGException(
-                "Invalid account type '%s', please provide LIVE or DEMO" % acc_type
-            )
-
+        self.BASE_URL = acc_type.url
         self.return_dataframe = return_dataframe
         self.return_munch = return_munch
 
@@ -214,9 +213,7 @@ class IGService:
 
         self.crud_session = IGSessionCRUD(self.BASE_URL, self.API_KEY, self.session)
 
-    def setup_rate_limiter(
-        self,
-    ):
+    def setup_rate_limiter(self):
         data = self.get_client_apps()
         for acc in data:
             if acc["apiKey"] == self.API_KEY:
@@ -284,25 +281,19 @@ class IGService:
         # Create a leaky token bucket for allowanceAccountHistoricalData
         return
 
-    def _token_bucket_trading(
-        self,
-    ):
+    def _token_bucket_trading(self):
         while self._bucket_threads_run:
             time.sleep(60.0 / self._trading_requests_per_minute)
             self._trading_requests_queue.put(True, block=True)
         return
 
-    def _token_bucket_non_trading(
-        self,
-    ):
+    def _token_bucket_non_trading(self):
         while self._bucket_threads_run:
             time.sleep(60.0 / self._non_trading_requests_per_minute)
             self._non_trading_requests_queue.put(True, block=True)
         return
 
-    def trading_rate_limit_pause_or_pass(
-        self,
-    ):
+    def trading_rate_limit_pause_or_pass(self):
         if self._use_rate_limiter:
             self._trading_requests_queue.get(block=True)
             self._trading_times.append(time.time())
@@ -317,9 +308,7 @@ class IGService:
             )
         return
 
-    def non_trading_rate_limit_pause_or_pass(
-        self,
-    ):
+    def non_trading_rate_limit_pause_or_pass(self):
         if self._use_rate_limiter:
             self._non_trading_requests_queue.get(block=True)
             self._non_trading_times.append(time.time())
@@ -371,7 +360,7 @@ class IGService:
         Wraps the _request() function, applying a tenacity.Retrying object if configured
         """
         if self._retryer is not None:
-            result = self._retryer.__call__(
+            result = self._retryer(
                 self._request, action, endpoint, params, session, version, check
             )
         else:
@@ -381,10 +370,10 @@ class IGService:
 
     def _request(self, action, endpoint, params, session, version="1", check=True):
         """Creates a CRUD request and returns response"""
-        session = self._get_session(session)
+        session = self._get_session(session, version)
         if check:
             self._check_session()
-        response = self.crud_session.req(action, endpoint, params, session, version)
+        response: Response = self.crud_session.req(action, endpoint, params, session, version)
 
         if response.status_code >= 500:
             raise (
@@ -462,7 +451,7 @@ class IGService:
         if self.return_dataframe:
             data = pd.DataFrame(data["accounts"])
             d_cols = {"balance": ["available", "balance", "deposit", "profitLoss"]}
-            data = self.expand_columns(data, d_cols, False)
+            data = self.expand_columns(data, d_cols, False)  # NOTE: pd.json_normalize() ???
 
             if len(data) == 0:
                 columns = [

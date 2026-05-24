@@ -1,48 +1,42 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function
-
-import sys
-import traceback
 import logging
 
 from lightstreamer.client import LightstreamerClient, Subscription, ClientListener
 
+from trading_ig.rest import IGService, IGRestAPIVersion
+
 logger = logging.getLogger(__name__)
 
 
-class IGStreamService(object):
-    def __init__(self, ig_service):
+class IGStreamService:
+    def __init__(self, ig_service: IGService):
         self.ig_service = ig_service
+
         self.lightstreamerEndpoint = None
         self.acc_number = None
         self.ls_client = None
 
-    def create_session(self, encryption=False, version="2"):
+    def create_session(self, encryption: bool=False, version: IGRestAPIVersion=IGRestAPIVersion.TWO):
         ig_session = self.ig_service.create_session(
-            encryption=encryption, version=version
+            encryption=encryption, version=str(version)
         )
         # if we have created a v3 session, we also need the session tokens
-        if version == "3":
+        if version == IGRestAPIVersion.THREE:
             self.ig_service.read_session(fetch_session_tokens="true")
         self.lightstreamerEndpoint = ig_session["lightstreamerEndpoint"]
         cst = self.ig_service.session.headers["CST"]
         xsecuritytoken = self.ig_service.session.headers["X-SECURITY-TOKEN"]
-        ls_password = "CST-%s|XST-%s" % (cst, xsecuritytoken)
+        ls_password = f"CST-{cst}|XST-{xsecuritytoken}" 
 
         # Establishing a new connection to Lightstreamer Server
-        logger.info("Starting connection with %s" % self.lightstreamerEndpoint)
-        self.ls_client = LightstreamerClient(self.lightstreamerEndpoint, None)
+        logger.info("Starting connection with %s", self.lightstreamerEndpoint)
+        self.ls_client = LightstreamerClient(self.lightstreamerEndpoint)
         self.ls_client.connectionDetails.setUser(self.acc_number)
         self.ls_client.connectionDetails.setPassword(ls_password)
         try:
             self.ls_client.connect()
-            return
-        except Exception:
+        except Exception as e:
             logger.error("Unable to connect to Lightstreamer Server")
-            logger.error(traceback.format_exc())
-            sys.exit(1)
+            raise e
 
     def subscribe(self, subscription: Subscription):
         self.ls_client.subscribe(subscription)
@@ -51,9 +45,7 @@ class IGStreamService(object):
         self.ls_client.unsubscribe(subscription)
 
     def unsubscribe_all(self):
-        # To avoid a RuntimeError: dictionary changed size during iteration
-        subscriptions = self.ls_client.getSubscriptions().copy()
-        for sub in subscriptions:
+        for sub in self.ls_client.getSubscriptions():
             self.ls_client.unsubscribe(sub)
 
     def add_client_listener(self, listener: ClientListener):

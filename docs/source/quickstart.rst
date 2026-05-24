@@ -21,7 +21,7 @@ Config file
 Make a copy of the config template module (``trading_ig_config.default.py``), and rename
 ``trading_ig_config.py``. Edit the new file, replacing the variables with your own::
 
-    class config(object):
+    class config:
         username = "your_username"
         password = "your_password"
         api_key = "your_api_key"
