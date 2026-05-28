@@ -50,8 +50,7 @@ class IGSession:
         )
 
     def _get_session(
-        self, session: Session | None = None, 
-        version: IGRestAPIVersion | None = None
+        self, session: Session | None = None, version: IGRestAPIVersion | None = None
     ) -> Session:
         """Returns a Requests session if session is None
         or session if it's not None (cached session
@@ -61,7 +60,7 @@ class IGSession:
         :return:
         """
         if session is None:
-            session = self.session 
+            session = self.session
         else:
             assert isinstance(session, Session), (
                 f"session must be {type(Session)} not {type(session)}"
@@ -78,10 +77,15 @@ class IGSession:
     def request(self, rest_api_call: RestApiCall, session: Session | None = None):
         session = self._get_session(session, rest_api_call.api_version)
         request = getattr(session, rest_api_call.request_type)
-        response: Response = request(self._get_url(rest_api_call.endpoint), data=rest_api_call.data)
-        logger.info(f"{rest_api_call.request_type.upper()} '{rest_api_call.endpoint}', resp {response.status_code}")
+        response: Response = request(
+            self._get_url(rest_api_call.endpoint), data=rest_api_call.data
+        )
+        logger.info(
+            f"{rest_api_call.request_type.upper()} '{rest_api_call.endpoint}', resp {response.status_code}"
+        )
 
-        if rest_api_call.request_type == RequestType.GET:  # TODO: Headers need to be processed here as do OAuth
+        # TODO: Headers need to be processed here as do OAuth
+        if rest_api_call.request_type == RequestType.GET:
             self.handle_session_tokens(response, self._get_session(session))
 
         if response.status_code == 200:
@@ -108,7 +112,7 @@ class IGSession:
             )
 
     @staticmethod
-    def parse_response(response: Response) -> dict[str: Any]:
+    def parse_response(response: Response) -> dict[str:Any]:
         """Parses JSON response into dict
         exception raised when error occurs"""
         payload = json.loads(response.text)
@@ -120,7 +124,7 @@ class IGSession:
         status_code: int = response.status_code
         match status_code:
             case 401 | 403:
-                response.encoding = 'UTF'
+                response.encoding = "UTF"
                 if api_limit_hit(response.text):
                     raise ApiExceededException()
                 if "error.public-api.failure.kyc.required" in response.text:

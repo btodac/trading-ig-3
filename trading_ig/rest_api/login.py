@@ -1,3 +1,5 @@
+"""These are special methods connected to the session rather than used to get/put/post data by the user"""
+
 import logging
 from base64 import b64encode, b64decode
 from dataclasses import dataclass
@@ -68,9 +70,6 @@ class CreateSessionV1(RestApiCall):
         encrypted_bytes = public_key.encrypt(message, padding.PKCS1v15())
         return b64encode(encrypted_bytes).decode()
 
-    def process_payload(self, payload: dict[str, Any]):
-        return payload
-
 
 class CreateSessionV2(CreateSessionV1):
     def __init__(
@@ -96,18 +95,12 @@ class RefreshSession(RestApiCall):
         self.api_version = IGRestAPIVersion.ONE
         self.request_data = RefreshSessionData(refreshToken=refresh_token)
 
-    def process_payload(self, payload: dict[str, Any]):
-        return payload
-
 
 class Logout(RestApiCall):
     def __init__(self):
         self.base_endpoint = "/session"
         self.request_type = RequestType.DELETE
         self.api_version = IGRestAPIVersion.ONE
-
-    def process_payload(self, payload: dict[str, Any]):
-        return payload
 
 
 @dataclass

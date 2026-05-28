@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Any
 
 from trading_ig.rest_api.api_enums import RequestType, IGRestAPIVersion
@@ -11,10 +11,15 @@ class Arguments(ABC):
         pass
 
 
-class RequestData:
+class RequestData(ABC):
 
     def to_json(self):
-        return {k: v for k, v in vars(self).items() if v is not None}
+        json_data = {k: v for k, v in vars(self).items() if v is not None}
+        for f in fields(self):
+            if "json_name" in f.metadata and f.name in json_data:
+                json_data[f.metadata["json_name"]] = json_data.pop(f.name)
+        
+        return  json_data
 
 
 @dataclass
@@ -38,9 +43,7 @@ class RestApiCall:
     def data(self):
         if self.request_data is None:
             return {}
-        if hasattr(self.request_data, "to_json"):
-            return self.request_data.to_json()
-        return vars(self.request_data)
+        return self.request_data.to_json()
     
     def process_payload(self, payload: dict[str,Any]):
         return payload

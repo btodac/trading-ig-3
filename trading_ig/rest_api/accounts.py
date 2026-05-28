@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
@@ -43,18 +43,12 @@ class ReadSession(RestApiCall):
         self.request_data = ReadSessionData(fetchSessionTokens=fetch_session_tokens)
 
 
-@dataclass
-class EmptyRequestData(RequestData):
-    pass
-
-
 class FetchAccounts(RestApiCall):
 
     def __init__(self):
         self.base_endpoint = "/accounts"
         self.request_type = RequestType.GET
         self.api_version = IGRestAPIVersion.ONE
-        self.request_data = EmptyRequestData()
 
 
 class FetchAccountPreferences(RestApiCall):
@@ -63,7 +57,6 @@ class FetchAccountPreferences(RestApiCall):
         self.base_endpoint = "/accounts/preferences"
         self.request_type = RequestType.GET
         self.api_version = IGRestAPIVersion.ONE
-        self.request_data = EmptyRequestData()
 
 
 @dataclass
@@ -97,22 +90,15 @@ class FetchAccountActivityByPeriod(RestApiCall):
         self.request_type = RequestType.GET
         self.api_version = IGRestAPIVersion.ONE
         self.arguments = FetchAccountActivityByPeriodArguments(milliseconds=milliseconds)
-        self.request_data = EmptyRequestData()
 
 
 @dataclass
 class FetchAccountActivityV2Data(RequestData):
-    from_: str | None = None
+    from_: str | None = field(default=None, metadata={"json_name": "from"})
     to: str | None = None
     maxSpanSeconds: int | None = None
     pageSize: int = 20
     pageNumber: int | None = None
-
-    def to_json(self):
-        payload = super().to_json()
-        if "from_" in payload:
-            payload["from"] = payload.pop("from_")
-        return payload
 
 
 class FetchAccountActivityV2(RestApiCall):
@@ -139,18 +125,12 @@ class FetchAccountActivityV2(RestApiCall):
 
 @dataclass
 class FetchAccountActivityData(RequestData):
-    from_: str | None = None
+    from_: str | None = field(default=None, metadata={"json_name": "from"})
     to: str | None = None
     detailed: bool | None = None
     dealId: str | None = None
     filter: str | None = None
     pageSize: int = 50
-
-    def to_json(self):
-        payload = super().to_json()
-        if "from_" in payload:
-            payload["from"] = payload.pop("from_")
-        return payload
 
 
 class FetchAccountActivity(RestApiCall):
@@ -196,23 +176,16 @@ class FetchTransactionHistoryByTypeAndPeriod(RestApiCall):
             trans_type=trans_type,
             milliseconds=milliseconds,
         )
-        self.request_data = EmptyRequestData()
 
 
 @dataclass
 class FetchTransactionHistoryData(RequestData):
     type: str | None = None
-    from_: str | None = None
+    from_: str | None = field(default=None, metadata={"json_name": "from"})
     to: str | None = None
     maxSpanSeconds: int | None = None
     pageSize: int | None = None
     pageNumber: int | None = None
-
-    def to_json(self):
-        payload = super().to_json()
-        if "from_" in payload:
-            payload["from"] = payload.pop("from_")
-        return payload
 
 
 class FetchTransactionHistory(RestApiCall):
@@ -237,52 +210,6 @@ class FetchTransactionHistory(RestApiCall):
             pageSize=page_size,
             pageNumber=page_number,
         )
-
-
-class GetClientApps(RestApiCall):
-
-    def __init__(self):
-        self.base_endpoint = "/operations/application"
-        self.request_type = RequestType.GET
-        self.api_version = IGRestAPIVersion.ONE
-        self.request_data = EmptyRequestData()
-
-
-@dataclass
-class UpdateClientAppData(RequestData):
-    allowanceAccountOverall: int
-    allowanceAccountTrading: int
-    apiKey: str
-    status: str
-
-
-class UpdateClientApp(RestApiCall):
-
-    def __init__(
-        self,
-        allowance_account_overall: int,
-        allowance_account_trading: int,
-        api_key: str,
-        status: str,
-    ):
-        self.base_endpoint = "/operations/application"
-        self.request_type = RequestType.PUT
-        self.api_version = IGRestAPIVersion.ONE
-        self.request_data = UpdateClientAppData(
-            allowanceAccountOverall=allowance_account_overall,
-            allowanceAccountTrading=allowance_account_trading,
-            apiKey=api_key,
-            status=status,
-        )
-
-
-class DisableClientAppKey(RestApiCall):
-
-    def __init__(self):
-        self.base_endpoint = "/operations/application/disable"
-        self.request_type = RequestType.PUT
-        self.api_version = IGRestAPIVersion.ONE
-        self.request_data = EmptyRequestData()
 
 
 @dataclass
