@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-import json
 from typing import Any
 
 from trading_ig.rest_api.api_enums import RequestType, IGRestAPIVersion
