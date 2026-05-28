@@ -15,7 +15,7 @@ class Arguments(ABC):
 class RequestData:
 
     def to_json(self):
-        json.dumps(vars(self))
+        return {k: v for k, v in vars(self).items() if v is not None}
 
 
 @dataclass
@@ -37,6 +37,10 @@ class RestApiCall:
 
     @property
     def data(self):
+        if self.request_data is None:
+            return {}
+        if hasattr(self.request_data, "to_json"):
+            return self.request_data.to_json()
         return vars(self.request_data)
     
     def process_payload(self, payload: dict[str,Any]):
