@@ -1,6 +1,9 @@
+
+import logging
 from dataclasses import dataclass
 from typing import Any
 
+from trading_ig_core.rest_api.responses.dealing import DealConfirmation
 from trading_ig_core.rest_api.rest_api_enums import (
     IGRestAPIVersion,
     RequestType,
@@ -9,6 +12,9 @@ from trading_ig_core.rest_api.rest_api_enums import (
     TimeInForce,
 )
 from trading_ig_core.rest_api.base_rest_api_call import Arguments, RestApiCall, RequestData
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -88,6 +94,10 @@ class FetchDealByDealReference(RestApiCall):
         self.arguments = FetchDealByDealReferenceArguments(
             deal_reference=deal_reference
         )
+
+    def process_payload(self, payload):
+        logger.debug(str(payload))
+        return DealConfirmation(**payload)
 
 
 @dataclass

@@ -180,6 +180,7 @@ class PositionStatus(StrEnum):
     DELETED = "DELETED"
     FULLY_CLOSED = "FULLY_CLOSED"
     OPENED = "OPENED"
+    OPEN = "OPEN"
     PARTIALLY_CLOSED = "PARTIALLY_CLOSED"
     CLOSED = "CLOSED"
 

@@ -1,0 +1,77 @@
+//confirms
+{
+    "date": "2026-07-06T20:00:01.547",
+    "limitDistance": null,
+    "reason": "SUCCESS",
+    "limitLevel": null,
+    "level": 29714.9,
+    "dealId": "DIAAAAXXXM3KDA7",
+    "channel": "PublicRestOTC",
+    "epic": "IX.D.NASDAQ.IFS.IP",
+    "dealReference": "VNTSYRZLKACTYSB",
+    "dealStatus": "ACCEPTED",
+    "trailingStop": false,
+    "repeatDealingWindow": {
+        "entries": [
+            {
+                "size": 1.0,
+                "expiry": 1783368006929
+            }
+        ]
+    },
+    "size": 1,
+    "stopLevel": null,
+    "stopDistance": null,
+    "profitCurrency": "EUR",
+    "expiry": "-",
+    "profit": 0.23,
+    "affectedDeals": [
+        {
+            "dealId": "DIAAAAXXXM3KDA7",
+            "status": "FULLY_CLOSED"
+        }
+    ],
+    "guaranteedStop": false,
+    "direction": "BUY",
+    "status": "CLOSED"
+}
+// OPU
+{
+    "dealReference": "FHEK2K7DCMLTYSB",
+    "dealId": "DIAAAAXXXR2A6A5",
+    "direction": "SELL",
+    "epic": "IX.D.NASDAQ.IFS.IP",
+    "status": "OPEN",
+    "dealStatus": "ACCEPTED",
+    "level": 29715.6,
+    "size": 1,
+    "currency": "GBP",
+    "timestamp": "2026-07-06T20:25:57.846",
+    "channel": "PublicRestOTC",
+    "dealIdOrigin": "DIAAAAXXXR2A6A5",
+    "expiry": "-",
+    "openLevel": 29715.6,
+    "stopLevel": 29735.6,
+    "limitLevel": 29615.6,
+    "guaranteedStop": false
+}
+
+{
+    "dealReference": "B5U9PZKQKW8TYSB",
+    "dealId": "DIAAAAXXXZKJYAF",
+    "direction": "BUY",
+    "epic": "IX.D.NASDAQ.IFS.IP",
+    "status": "OPEN",
+    "dealStatus": "ACCEPTED",
+    "level": 29722,
+    "size": 1,
+    "currency": "GBP",
+    "timestamp": "2026-07-06T21:11:17.699",
+    "channel": "PublicRestOTC",
+    "dealIdOrigin": "DIAAAAXXXZKJYAF",
+    "expiry": "-",
+    "openLevel": 29722,
+    "stopLevel": 29702,
+    "limitLevel": 29822,
+    "guaranteedStop": false
+}
