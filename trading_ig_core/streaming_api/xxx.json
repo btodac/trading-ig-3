@@ -57,6 +57,30 @@
 }
 
 {
+    "date": "2026-07-07T14:09:56.28",
+    "limitDistance": null,
+    "reason": "INSUFFICIENT_FUNDS",
+    "limitLevel": null,
+    "level": null,
+    "dealId": "DIAAAAXX635Z2A5",
+    "channel": "PublicRestOTC",
+    "epic": "IX.D.NASDAQ.IFS.IP",
+    "dealReference": "U7VLKUT4AE4TYSB",
+    "dealStatus": "REJECTED",
+    "trailingStop": false,
+    "size": null,
+    "stopLevel": null,
+    "stopDistance": null,
+    "profitCurrency": null,
+    "expiry": null,
+    "profit": null,
+    "affectedDeals": [],
+    "guaranteedStop": false,
+    "direction": "BUY",
+    "status": null
+}
+
+{
     "dealReference": "B5U9PZKQKW8TYSB",
     "dealId": "DIAAAAXXXZKJYAF",
     "direction": "BUY",
@@ -74,4 +98,25 @@
     "stopLevel": 29702,
     "limitLevel": 29822,
     "guaranteedStop": false
+}
+
+
+{
+    "dealReference": "XNP4ZZ5TVELTYSB",
+    "dealId": "DIAAAAXX9H8QFAN",
+    "direction": "BUY",
+    "epic": "IX.D.NASDAQ.IFS.IP",
+    "status": "OPEN",
+    "dealStatus": "ACCEPTED",
+    "level": 29095.3,
+    "size": 1,
+    "currency": "GBP",
+    "timestamp": "2026-07-07T19: 37: 58.604",
+    "channel": "PublicRestOTC",
+    "dealIdOrigin": "DIAAAAXX9H8QFAN",
+    "expiry": "-",
+    "openLevel": 29095.3,
+    "stopLevel": 29075.3,
+    "limitLevel": 29195.3,
+    "guaranteedStop": False
 }

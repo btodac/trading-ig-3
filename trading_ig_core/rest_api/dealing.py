@@ -56,13 +56,14 @@ class CloseOpenPositionData(RequestData):
     dealId: str | None  # MUST SET EPIC + EXPIRY IF NONE
     direction: Direction
     size: float
-
+    orderType: OrderType = OrderType.MARKET
+    # Only set if dealId is None
     epic: str | None = None
     expiry: str | None = None
-
-    orderType: OrderType = OrderType.MARKET
+    #Only set if orderType =/= MARKET 
     level: float | None = None  # Do not set if orderType = MARKET
     quoteId: str | None = None  # Do not set if orderType = MARKET
+    # Unused?
     timeInForce: TimeInForce | None = None
 
 

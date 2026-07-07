@@ -83,10 +83,11 @@ class IGStreamService(LightstreamerClient):
             self.connect()
         except Exception:
             logger.error("Unable to connect to Lightstreamer Server")
+        else:
+            logger.debug("Connected to lightstreamer server")
 
     def __del__(self):
         self.disconnect()
-        super().__del__()
 
     def unsubscribe_all(self):
         for sub in self.getSubscriptions():
@@ -224,4 +225,4 @@ class IGSession:
                         f"Server problem: status code: {response.status_code}, {response.reason}"
                     )
                 )
-        raise IGException(f"HTTP error: {response.status_code}, {response.text}")
+            

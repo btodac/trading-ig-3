@@ -24,10 +24,10 @@ class RepeatDealingWindows:
 @dataclass
 class TradeUpdateConfirms:
     direction: Direction  # Constant BUY, SELL
-    limitLevel: float  # Number Limit level
+    limitLevel: float | None  # Number Limit level
     dealId: str  # String Deal identifier
     affectedDeals: list[AffectedDealStatus]
-    stopLevel: float  # Stop level
+    stopLevel: float | None  # Stop level
     expiry: str  # Instrument expiry
     size: float  # Trade size
     status: PositionStatus

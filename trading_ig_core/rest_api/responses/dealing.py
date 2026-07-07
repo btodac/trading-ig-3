@@ -13,16 +13,17 @@ class DealConfirmation:
     dealStatus: DealStatus
     direction: Direction
     epic: str  # Instrument epic identifier
-    expiry: str  # Instrument expiry
     guaranteedStop: bool  # True if guaranteed stop
-    level: float  # Level
-    limitDistance: float | None  # Limit distance
-    limitLevel: float  # Limit level
+    trailingStop: bool  # True if trailing stop
+    reason: RejectionReasons  # Describes the error (or success) condition for the specified trading operation
+    status: PositionStatus | None  # Position status
+    size: float | None  # Size
+    expiry: str | None  # Instrument expiry
+    level: float | None  # Level
+    limitLevel: float | None  # Limit level
+    stopLevel: float | None  # Stop level
     profit: float | None  # Profit
     profitCurrency: str | None  # Profit currency
-    reason: RejectionReasons  # Describes the error (or success) condition for the specified trading operation
-    size: float  # Size
-    status: PositionStatus  # Position status
+    limitDistance: float | None  # Limit distance
     stopDistance: float | None  # Stop distance
-    stopLevel: float  # Stop level
-    trailingStop: bool  # True if trailing stop
+    
