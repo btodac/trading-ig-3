@@ -120,3 +120,27 @@
     "limitLevel": 29195.3,
     "guaranteedStop": False
 }
+
+{
+    "date": "2026-07-08T08:27:15.87",
+    "limitDistance": null,
+    "reason": "POSITION_ALREADY_EXISTS_IN_OPPOSITE_DIRECTION",
+    "limitLevel": null,
+    "level": null,
+    "dealId": "DIAAAAXYFKH7NA9",
+    "channel": "PublicRestOTC",
+    "epic": "IX.D.NASDAQ.IFS.IP",
+    "dealReference": "RNX8RLG35EQTYSB",
+    "dealStatus": "REJECTED",
+    "trailingStop": false,
+    "size": null,
+    "stopLevel": null,
+    "stopDistance": null,
+    "profitCurrency": null,
+    "expiry": null,
+    "profit": null,
+    "affectedDeals": [],
+    "guaranteedStop": false,
+    "direction": "SELL",
+    "status": null
+}

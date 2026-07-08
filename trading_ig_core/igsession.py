@@ -1,12 +1,13 @@
 import json
 import logging
+import time
 from dataclasses import dataclass
 from typing import Any
 
 from lightstreamer.client import LightstreamerClient
 from requests import Session, Response
 
-from trading_ig_core.rest_api.rest_api_enums import IGRestAPIVersion, Gateway
+from trading_ig_core.rest_api.rest_api_enums import IGRestAPIVersion, Gateway, RequestType
 from trading_ig_core.rest_api.login import (
     CreateSessionV2,
     GetSession,
@@ -81,10 +82,19 @@ class IGStreamService(LightstreamerClient):
 
         try:
             self.connect()
-        except Exception:
-            logger.error("Unable to connect to Lightstreamer Server")
+        except Exception as e:
+            logger.error("Unable to connect to Lightstreamer Server: %s", str(e))
         else:
-            logger.debug("Connected to lightstreamer server")
+            i = 0
+            while i < 3:
+                if self.getStatus().startswith("CONNECTED"):
+                    logger.debug("Connected to lightstreamer server")
+                    return
+                else:
+                    time.sleep(1)
+                    i += 1
+            status =  self.getStatus()
+            logger.error("Lightstreamer Server connection failed with status: %s", status)
 
     def __del__(self):
         self.disconnect()
@@ -168,8 +178,17 @@ class IGSession:
     def request(self, rest_api_call: RestApiCall) -> Response:
         self._set_header_version(rest_api_call.api_version)
         url = self._get_url(rest_api_call.endpoint)
-        request = getattr(self.session, rest_api_call.request_type)
+        if (
+            rest_api_call.request_type == RequestType.DELETE
+            and rest_api_call.request_data is not None
+        ):
+            # The IG API shows a DELETE with a body, which is not allowed!
+            self.session.headers.update({"_method": "DELETE"})
+            request = getattr(self.session, RequestType.POST)
+        else:
+            request = getattr(self.session, rest_api_call.request_type)
         response: Response = request(url, data=json.dumps(rest_api_call.data))
+        self.session.headers.pop("_method", None)
         logger.info(
             f"{rest_api_call.request_type.upper()} '{rest_api_call.endpoint}', resp {response.status_code}"
         )
@@ -219,10 +238,14 @@ class IGSession:
                         "KYC issue: you need to login manually to the web interface and "
                         "complete IGs occasional Know Your Customer checks"
                     )
-            case _ if response.status_code >= 500:
-                raise (
-                    IGException(
-                        f"Server problem: status code: {response.status_code}, {response.reason}"
+            case _:
+                response_str = f"{response.status_code}, {response.reason}, {response.text}"
+                if response.status_code >= 500:
+                    raise IGException(
+                        f"Server problem: status code: {response_str}"
                     )
-                )
+                else:
+                    raise IGException(
+                        f"Client problem: status code: {response_str}"
+                    )
             

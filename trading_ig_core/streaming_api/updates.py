@@ -28,15 +28,15 @@ class TradeUpdateConfirms:
     dealId: str  # String Deal identifier
     affectedDeals: list[AffectedDealStatus]
     stopLevel: float | None  # Stop level
-    expiry: str  # Instrument expiry
-    size: float  # Trade size
-    status: PositionStatus
+    expiry: str | None  # Instrument expiry
+    size: float | None  # Trade size
+    status: PositionStatus | None
     epic: str  # String Instrument EPIC identifier
-    level: float  # Number Trade level
+    level: float | None  # Number Trade level
     guaranteedStop: bool  # Boolean True if a guaranteed stop is in place
     dealReference: str  # String Deal reference
     dealStatus: DealStatus 	# Accepted/rejected
-    repeatDealingWindow: RepeatDealingWindows
+    repeatDealingWindow: RepeatDealingWindows | None = None
 
 
 @dataclass
