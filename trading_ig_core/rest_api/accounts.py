@@ -2,16 +2,15 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+import pandas as pd
+
 from trading_ig_core.rest_api.rest_api_enums import (
     IGRestAPIVersion,
     RequestType,
     TransactionType,
 )
 from trading_ig_core.rest_api.base_rest_api_call import Arguments, RestApiCall, RequestData
-from trading_ig_core.utils import _HAS_PANDAS
-
-if _HAS_PANDAS:
-    import pandas as pd
+from trading_ig_core.rest_api.responses.accounts import Accounts
 
 
 class FetchAccounts(RestApiCall):
@@ -19,6 +18,9 @@ class FetchAccounts(RestApiCall):
         self.base_endpoint = "/accounts"
         self.request_type = RequestType.GET
         self.api_version = IGRestAPIVersion.ONE
+
+    def process_payload(self, payload):
+        return Accounts.from_response(payload)
 
 
 class FetchAccountPreferences(RestApiCall):
@@ -199,7 +201,4 @@ class FetchAccountActivityByDate(RestApiCall):
         self.arguments = fetch_account_acitvity_by_date_arguments
 
     def process_payload(self, payload: dict[str, Any]):
-        if _HAS_PANDAS:
             return pd.DataFrame(payload["activities"])
-        else:
-            return payload

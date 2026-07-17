@@ -11,18 +11,16 @@ authors = [
     { name = "Andy Geach", email = "andy@bugorfeature.net" },
     { name = "Mat Tolladay", email = "djlets2004@yahoo.co.uk"},
 ]
-requires-python = ">=3.12,<4"
+requires-python = ">=3.13,<4"
 readme = "README.md"
 license = "BSD-3-Clause"
 dependencies = [
     "cryptography",
-    "requests>=2.24,<3",
+    "requests",
     "lightstreamer-client-lib>=1.0.3",
+    "pandas",
     "pydantic",
 ]
-
-[project.optional-dependencies]
-pandas = ["pandas>=2,<3"]
 
 [dependency-groups]
 dev = [

@@ -158,7 +158,10 @@ class IGSession:
 
     def __del__(self):
         self.streamer.disconnect()
-        self.terminate_session()
+        try:
+            self.terminate_session()
+        except Exception as e:
+            logger.debug(str(e))
 
     def get_session(self):
         session_details: SessionDetailsResponse = self.request(GetSession(fetch_session_tokens=True))
@@ -198,6 +201,8 @@ class IGSession:
         if response.status_code == 200:
             payload = self.parse_response(response)
             return rest_api_call.process_payload(payload)
+        if response.status_code == 204:
+            return
         else:
             self.handle_request_error_code(response)
 

@@ -88,6 +88,12 @@ class AccountType(StrEnum):
     SPREADBET = "SPREADBET"
 
 
+class AccountStatus(StrEnum):
+    DISABLED = "DISABLED"  # Disabled
+    ENABLED = "ENABLED"  # Enabled
+    SUSPENDED_FROM_DEALING = "SUSPENDED_FROM_DEALING"  # Suspended from dealing
+
+
 class ReroutingEnvironment(StrEnum):
     DEMO = "DEMO"
     LIVE = "LIVE"
